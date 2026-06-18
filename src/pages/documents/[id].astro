@@ -1,0 +1,34 @@
+---
+export const prerender = false;
+
+import { eq } from 'drizzle-orm';
+import Workspace from '@/components/Workspace';
+import { getDB } from '@/db';
+import Layout from '@/layouts/Layout.astro';
+import { config } from '@/utils/config';
+
+const { id } = Astro.params;
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+
+if (!id) {
+  return Astro.redirect('/documents');
+}
+
+const { db, documents } = await getDB();
+const docs = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
+
+if (docs.length === 0 || docs[0].userId !== user.id) {
+  // Redirect to workspace landing if document not found or unauthorized
+  return Astro.redirect('/documents');
+}
+
+const docTitle = docs[0].title || 'Document';
+---
+
+<Layout title={`${docTitle} - ${config.appName}`}>
+  <Workspace client:load activeDocId={id} />
+</Layout>

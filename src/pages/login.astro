@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+
+import AuthForm from '@/components/AuthForm';
+import Layout from '@/layouts/Layout.astro';
+import { config } from '@/utils/config';
+---
+
+<Layout title={`Sign In - ${config.appName}`}>
+  <main class="min-h-screen flex items-center justify-center bg-bg-app p-4">
+    <AuthForm mode="login" client:load />
+  </main>
+</Layout>

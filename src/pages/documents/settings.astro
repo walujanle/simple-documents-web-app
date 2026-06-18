@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import Workspace from '@/components/Workspace';
+import Layout from '@/layouts/Layout.astro';
+import { config } from '@/utils/config';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/login');
+}
+---
+
+<Layout title={`Account Settings - ${config.appName}`}>
+  <Workspace client:load mode="settings" />
+</Layout>

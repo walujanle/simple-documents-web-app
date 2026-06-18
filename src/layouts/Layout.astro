@@ -1,0 +1,85 @@
+---
+import '@/styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import { config } from '@/utils/config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  authorName?: string;
+  robots?: string;
+  jsonLd?: Record<string, any>;
+}
+
+const {
+  title = config.appName,
+  description = config.appDescription,
+  keywords,
+  authorName,
+  robots,
+  jsonLd,
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.url.origin).toString();
+const absoluteCoverUrl = config.coverImage
+  ? new URL(config.coverImage, Astro.url.origin).toString()
+  : '';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {keywords && <meta name="keywords" content={keywords} />}
+    {authorName && <meta name="author" content={authorName} />}
+    {robots && <meta name="robots" content={robots} />}
+    <link rel="icon" href={config.appIcon || "/favicon.svg"} />
+    <link rel="canonical" href={canonicalUrl} />
+    
+    <!-- OpenGraph Tags -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {absoluteCoverUrl && <meta property="og:image" content={absoluteCoverUrl} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={config.appName} />
+    
+    <!-- Twitter Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {absoluteCoverUrl && <meta name="twitter:image" content={absoluteCoverUrl} />}
+    {authorName && <meta name="twitter:creator" content={authorName} />}
+
+    {jsonLd && <script is:inline data-cfasync="false" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+
+    <ClientRouter />
+    
+    <!-- Inline theme initializer script to prevent FOUC -->
+    <script is:inline data-cfasync="false">
+      (() => {
+        const applyTheme = () => {
+          let savedTheme = 'light';
+          try {
+            savedTheme = localStorage.getItem('theme') || 'light';
+          } catch {}
+          document.documentElement.classList.remove('light', 'dark');
+          document.documentElement.classList.add(savedTheme === 'dark' ? 'dark' : 'light');
+        };
+
+        applyTheme();
+        if (!window.__monodocThemeListenerRegistered) {
+          document.addEventListener('astro:after-swap', applyTheme);
+          window.__monodocThemeListenerRegistered = true;
+        }
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen transition-colors duration-200">
+    <slot />
+  </body>
+</html>

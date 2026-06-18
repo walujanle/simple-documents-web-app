@@ -1,0 +1,11 @@
+---
+import { config } from '@/utils/config';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-border-custom text-center text-3xs text-text-muted select-none">
+  <div class="mx-auto max-w-6xl px-4 py-8">
+    <p>&copy; {config.footerCopyright(year, config.appName)}</p>
+  </div>
+</footer>

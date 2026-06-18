@@ -1,0 +1,32 @@
+---
+export const prerender = false;
+
+import { eq } from 'drizzle-orm';
+import { getDB } from '@/db';
+import { getCachedDocumentById } from '@/utils/documentCache';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return new Response('Not found', { status: 404 });
+}
+
+const { db, users } = await getDB();
+const doc = await getCachedDocumentById(id);
+
+if (!doc) {
+  return new Response('Not found', { status: 404 });
+}
+
+const ownerList = await db
+  .select({ username: users.username })
+  .from(users)
+  .where(eq(users.id, doc.userId))
+  .limit(1);
+
+if (ownerList.length === 0) {
+  return new Response('Not found', { status: 404 });
+}
+
+return Astro.redirect(`/${ownerList[0].username}/documents/${id}`, 301);
+---
