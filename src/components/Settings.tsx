@@ -12,6 +12,7 @@ import {
   Upload,
   User,
 } from '@/components/Icons';
+import { getErrorMessage } from '@/utils/json';
 
 type FormSubmitEvent = {
   preventDefault: () => void;
@@ -159,7 +160,7 @@ export default function Settings() {
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to update password');
+          throw new Error(getErrorMessage(data, 'Failed to update password'));
         }
 
         setSuccess('Password updated successfully');
@@ -188,7 +189,7 @@ export default function Settings() {
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to update profile');
+          throw new Error(getErrorMessage(data, 'Failed to update profile'));
         }
 
         setSuccess('Profile updated successfully');
@@ -325,7 +326,7 @@ export default function Settings() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                   placeholder="Enter full name"
                 />
               </div>
@@ -342,7 +343,7 @@ export default function Settings() {
                   type="url"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                   placeholder="https://yourwebsite.com"
                 />
               </div>
@@ -358,7 +359,7 @@ export default function Settings() {
                   id={profileDescriptionId}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold resize-none h-20 text-xs"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold resize-none h-20 text-xs"
                   placeholder="Tell us about yourself..."
                 />
               </div>
@@ -433,7 +434,7 @@ export default function Settings() {
                     type="text"
                     value={twitter}
                     onChange={(e) => setTwitter(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                     placeholder="username"
                   />
                 </div>
@@ -450,7 +451,7 @@ export default function Settings() {
                     type="text"
                     value={facebook}
                     onChange={(e) => setFacebook(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                     placeholder="username"
                   />
                 </div>
@@ -467,7 +468,7 @@ export default function Settings() {
                     type="text"
                     value={instagram}
                     onChange={(e) => setInstagram(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                     placeholder="username"
                   />
                 </div>
@@ -484,7 +485,7 @@ export default function Settings() {
                     type="text"
                     value={linkedin}
                     onChange={(e) => setLinkedin(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                     placeholder="username"
                   />
                 </div>
@@ -501,7 +502,7 @@ export default function Settings() {
                     type="text"
                     value={mastodon}
                     onChange={(e) => setMastodon(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                     placeholder="username@server.com"
                   />
                 </div>
@@ -518,7 +519,7 @@ export default function Settings() {
                     type="text"
                     value={bluesky}
                     onChange={(e) => setBluesky(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                    className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                     placeholder="username"
                   />
                 </div>
@@ -558,7 +559,7 @@ export default function Settings() {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                   placeholder="Enter current password"
                 />
               </div>
@@ -575,7 +576,7 @@ export default function Settings() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                   placeholder="••••••••"
                 />
               </div>
@@ -592,7 +593,7 @@ export default function Settings() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
                   placeholder="••••••••"
                 />
               </div>
