@@ -27,10 +27,22 @@ import {
   Upload,
   X,
 } from '@/components/Icons';
+import { getErrorMessage } from '@/utils/json';
 
 type ImageUploadConfig = {
   uploadsEnabled: boolean;
   maxBytes: number;
+};
+
+type VersionEntry = {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+};
+
+type DocumentDetailResponse = {
+  document: { title: string; content: string; updatedAt: string };
 };
 
 type FormSubmitEvent = {
@@ -109,7 +121,7 @@ export default function Editor() {
     try {
       const res = await fetch(`/api/documents/${activeDoc.id}/versions`);
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as { versions?: VersionEntry[] };
         setVersions(data.versions || []);
         if (data.versions && data.versions.length > 0) {
           setSelectedVersion(data.versions[0]);
@@ -140,7 +152,7 @@ export default function Editor() {
         body: JSON.stringify({ versionId: selectedVersion.id }),
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as DocumentDetailResponse;
         await updateActiveDocument({
           title: data.document.title,
           content: data.document.content,
@@ -175,7 +187,7 @@ export default function Editor() {
       try {
         const res = await fetch('/api/images/config');
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as Partial<ImageUploadConfig>;
           setImageConfig({
             uploadsEnabled: !!data.uploadsEnabled,
             maxBytes:
@@ -396,7 +408,7 @@ export default function Editor() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to update SEO settings');
+        throw new Error(getErrorMessage(data, 'Failed to update SEO settings'));
       }
 
       await updateActiveDocument({
@@ -537,7 +549,7 @@ export default function Editor() {
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok) {
-        throw new Error(data.error || 'Image upload failed');
+        throw new Error(getErrorMessage(data, 'Image upload failed'));
       }
       if (!data.url) {
         throw new Error('Image upload response did not include a URL');
@@ -553,8 +565,8 @@ export default function Editor() {
 
   if (!editor || !activeDoc) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-text-muted/60 bg-bg-app select-none">
-        <Sparkles className="w-12 h-12 mb-3 animate-pulse text-text-muted/30" />
+      <div className="flex-1 flex flex-col items-center justify-center text-text-muted bg-bg-app select-none">
+        <Sparkles className="w-12 h-12 mb-3 animate-pulse text-text-muted" />
         <p className="text-sm font-semibold">Create or select a document to start writing</p>
       </div>
     );
@@ -727,7 +739,7 @@ export default function Editor() {
 
       {/* Word-like Paper Workspace */}
       <div className="print-container flex flex-1 justify-center overflow-y-auto p-2 sm:p-4 md:p-8">
-        <div className="word-paper print-container w-full max-w-4xl rounded-none px-4 py-6 sm:rounded-lg sm:px-6 sm:py-8 md:px-16 md:py-12">
+        <div className="word-paper print-container min-w-0 w-full max-w-4xl rounded-none px-4 py-6 sm:rounded-lg sm:px-6 sm:py-8 md:px-16 md:py-12">
           <EditorContent editor={editor} />
         </div>
       </div>
@@ -1055,7 +1067,7 @@ export default function Editor() {
                   className="w-full px-3 py-2 text-xs rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all font-mono"
                   placeholder="e.g. my-first-note"
                 />
-                <span className="text-[10px] text-text-muted/70 mt-1 block select-none leading-relaxed">
+                <span className="text-[10px] text-text-muted mt-1 block select-none leading-relaxed">
                   Only lowercase letters, numbers, and dashes. Leave blank to use the document's
                   default ID.
                 </span>
@@ -1078,7 +1090,7 @@ export default function Editor() {
                   className="w-full px-3 py-2 text-xs rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all font-semibold"
                   placeholder="Enter a brief summary for search engines (max 160 chars)..."
                 />
-                <div className="flex justify-between text-[10px] text-text-muted/70 mt-0.5 select-none">
+                <div className="flex justify-between text-[10px] text-text-muted mt-0.5 select-none">
                   <span>Describe the content briefly.</span>
                   <span>{description.length}/160</span>
                 </div>
@@ -1100,7 +1112,7 @@ export default function Editor() {
                   className="w-full px-3 py-2 text-xs rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all font-semibold"
                   placeholder="e.g. react, tutorial, coding"
                 />
-                <span className="text-[10px] text-text-muted/70 mt-1 block select-none">
+                <span className="text-[10px] text-text-muted mt-1 block select-none">
                   Comma-separated keywords to help catalog and index this article.
                 </span>
               </div>
@@ -1171,7 +1183,7 @@ export default function Editor() {
                       Loading history...
                     </div>
                   ) : versions.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center p-6 text-center select-none text-text-muted/70">
+                    <div className="h-full flex flex-col items-center justify-center p-6 text-center select-none text-text-muted">
                       <History className="w-8 h-8 mb-2 opacity-30" />
                       <p className="text-xs font-bold">No versions saved yet</p>
                       <p className="text-[10px] mt-1 leading-relaxed">
@@ -1200,7 +1212,7 @@ export default function Editor() {
                             {v.title || 'Untitled Document'}
                           </span>
                           <span
-                            className={`text-[10px] font-semibold ${isSelected ? 'text-bg-card/80' : 'text-text-muted'}`}
+                            className={`text-[10px] font-semibold ${isSelected ? 'text-bg-card' : 'text-text-muted'}`}
                           >
                             {formattedDate}
                           </span>
@@ -1238,7 +1250,7 @@ export default function Editor() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-text-muted/60 select-none">
+                  <div className="flex-1 flex flex-col items-center justify-center text-text-muted select-none">
                     <History className="w-12 h-12 mb-3 opacity-20" />
                     <p className="text-xs font-bold">Select a version to preview</p>
                   </div>
