@@ -189,7 +189,7 @@ export default function Sidebar() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs">{doc.title || 'Untitled Document'}</p>
             <p
-              className={`text-3xs mt-0.5 truncate ${isActive ? 'text-bg-card/70' : 'text-text-muted/70'}`}
+              className={`text-3xs mt-0.5 truncate ${isActive ? 'text-bg-card' : 'text-text-muted'}`}
             >
               {formatDate(doc.updatedAt)}
             </p>
@@ -203,9 +203,7 @@ export default function Sidebar() {
             </span>
           ) : (
             <span title="Private">
-              <Lock
-                className={`w-3.5 h-3.5 ${isActive ? 'text-bg-card/50' : 'text-text-muted/30'}`}
-              />
+              <Lock className={`w-3.5 h-3.5 ${isActive ? 'text-bg-card' : 'text-text-muted'}`} />
             </span>
           )}
           <button
@@ -323,7 +321,7 @@ export default function Sidebar() {
             {childDocs.map((doc) => renderDocNode(doc, level + 1))}
             {childFolders.length === 0 && childDocs.length === 0 && (
               <div
-                className="text-3xs text-text-muted/40 italic"
+                className="text-3xs text-text-muted italic"
                 style={{ paddingLeft: `${(level + 1) * 16 + 24}px` }}
               >
                 Empty folder
@@ -386,7 +384,7 @@ export default function Sidebar() {
       {/* Search Input */}
       <div className="px-4 mb-3">
         <div className="relative">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-muted/50" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-muted" />
           <input
             name="documentSearch"
             type="text"
@@ -394,7 +392,7 @@ export default function Sidebar() {
             placeholder="Search documents..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-border-custom bg-bg-app text-text-main text-xs outline-none focus:border-text-main transition-colors placeholder:text-text-muted/40"
+            className="w-full pl-9 pr-4 py-2 rounded-lg border border-border-custom bg-bg-app text-text-main text-xs outline-none focus:border-text-main transition-colors placeholder:text-text-muted"
           />
         </div>
       </div>
@@ -454,9 +452,7 @@ export default function Sidebar() {
                 Documents
               </h3>
               {filteredDocs.length === 0 ? (
-                <div className="py-4 text-center text-xs text-text-muted/60">
-                  No documents found
-                </div>
+                <div className="py-4 text-center text-xs text-text-muted">No documents found</div>
               ) : (
                 <div className="space-y-0.5">
                   {filteredDocs.map((doc) => renderDocNode(doc, 0))}
@@ -470,7 +466,7 @@ export default function Sidebar() {
             {rootFolders.map((folder) => renderFolderNode(folder, 0))}
             {rootDocs.map((doc) => renderDocNode(doc, 0))}
             {rootFolders.length === 0 && rootDocs.length === 0 && (
-              <div className="py-8 text-center text-xs text-text-muted/60">
+              <div className="py-8 text-center text-xs text-text-muted">
                 No documents or folders
               </div>
             )}

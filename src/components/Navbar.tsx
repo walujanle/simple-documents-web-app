@@ -233,7 +233,7 @@ export default function Navbar() {
               <span className="hidden sm:inline">Saving...</span>
             </span>
           ) : (
-            <span className="hidden shrink-0 select-none text-3xs text-text-muted/60 sm:inline">
+            <span className="hidden shrink-0 select-none text-3xs text-text-muted sm:inline">
               Saved
             </span>
           )}

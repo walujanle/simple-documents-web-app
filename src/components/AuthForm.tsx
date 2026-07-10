@@ -86,7 +86,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40 font-semibold"
+              className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted font-semibold"
               placeholder="Enter full name"
             />
           </div>
@@ -106,7 +106,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40"
+            className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted"
             placeholder="Enter username"
           />
         </div>
@@ -125,7 +125,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted/40"
+            className="w-full px-4 py-2.5 rounded-lg border border-border-custom bg-bg-app text-text-main outline-none focus:ring-1 focus:ring-text-main focus:border-text-main transition-all placeholder:text-text-muted"
             placeholder="••••••••"
           />
         </div>
