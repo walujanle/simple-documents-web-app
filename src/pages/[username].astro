@@ -6,6 +6,7 @@ import Footer from '@/components/Footer.astro';
 import { getDB } from '@/db';
 import Layout from '@/layouts/Layout.astro';
 import { config } from '@/utils/config';
+import { isReservedUsername, normalizeUsername } from '@/utils/username';
 
 const { username } = Astro.params;
 
@@ -13,14 +14,24 @@ if (!username) {
   return new Response('Username is required', { status: 400 });
 }
 
-const { db, users, documents } = await getDB();
+const cleanUsername = normalizeUsername(username);
+const reservedUsername = isReservedUsername(cleanUsername);
+if (reservedUsername) {
+  Astro.response.status = 404;
+  Astro.response.headers.set('Cache-Control', 'private, no-store, no-transform');
+}
 
-// Fetch the user
-const userList = await db
-  .select()
-  .from(users)
-  .where(eq(users.username, username.toLowerCase()))
-  .limit(1);
+let db: any = null;
+let users: any = null;
+let documents: any = null;
+let userList: any[] = [];
+if (!reservedUsername) {
+  const database = await getDB();
+  db = database.db;
+  users = database.users;
+  documents = database.documents;
+  userList = await db.select().from(users).where(eq(users.username, cleanUsername)).limit(1);
+}
 
 const userExists = userList.length > 0;
 const userObj = userList[0];
