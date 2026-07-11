@@ -41,6 +41,10 @@ Required in production:
 
 - `JWT_SECRET`: HMAC secret for HTTP-only JWT sessions.
 
+Optional registration:
+
+- `ALLOW_REGISTRATION`: when not `true` (default fallback is `true` in `src/utils/config.ts`), `POST /api/auth/register` returns 403.
+
 Optional database:
 
 - `DATABASE_URL`: blank uses `./database/sqlite.db`.
@@ -87,9 +91,11 @@ This repository uses password-based authentication.
 Registration:
 
 - Endpoint: `POST /api/auth/register`
-- Requires `username` length at least 3 and `password` length at least 6.
-- Enforces unique usernames, not single-user locking.
-- Hashes passwords with `bcryptjs`.
+- Disabled when `ALLOW_REGISTRATION` resolves false (`config.allowRegistration`).
+- Username validation via `getUsernameValidationError` in `src/utils/username.ts`: 3–32 chars, lowercase letters/numbers/dashes, not reserved app routes.
+- Password minimum length is `MIN_PASSWORD_LENGTH` (**10**) in `src/utils/username.ts`.
+- Enforces unique usernames.
+- Hashes passwords with `bcryptjs` (cost 10).
 - Creates a user row and sets the `session` cookie.
 
 Login:
@@ -98,18 +104,22 @@ Login:
 - Looks up the user by lowercase username.
 - Verifies the password with `bcryptjs`.
 - Issues an HTTP-only `session` JWT cookie.
+- Rate limited in-process (20 attempts / 10 minutes per client IP key).
 
 Password change:
 
 - Endpoint: `POST /api/auth/change-password`
-- Requires an authenticated user, current password, and a new password of at least 6 characters.
+- Requires an authenticated user, current password, and a new password of at least 10 characters.
 - Verifies the current password before replacing `password_hash`.
 
 Session security:
 
 - JWT signing is implemented in `src/utils/auth.ts` with native Web Crypto HMAC SHA-256.
 - Cookies are `httpOnly`, `sameSite: 'lax'`, path `/`, and `secure` in production.
-- Middleware protects `/documents`, `/api/documents`, `/api/folders`, `/api/auth/profile`, `/api/auth/change-password`, and `/api/images`.
+- Middleware protects `/documents`, `/api/documents`, `/api/folders`, `/api/images` (pages redirect to `/login`; API returns 401).
+- Middleware also applies CSP (`src/utils/csp.ts`), nosniff, frame deny, Referrer-Policy, Permissions-Policy, and HSTS in production.
+- Cookie-authenticated unsafe methods require same-origin when the browser sends Origin or Sec-Fetch-Site=cross-site.
+- Production API 5xx responses use generic messages via `apiErrorFromCaught` and middleware scrubbing.
 
 ## 6. Database Architecture
 
@@ -286,8 +296,7 @@ The workspace behaves as an Astro SSR app with React islands. To reduce CDN-caus
 
 - Protected app/API responses set `Cache-Control: private, no-store, no-transform`.
 - Protected app/API responses set `Vary: Cookie` so authenticated responses are not reused across users.
-- All responses get `X-Content-Type-Options: nosniff`.
-- Middleware applies baseline security headers.
+- All responses get `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, and `Content-Security-Policy` from `src/utils/csp.ts`.
 - Cookie-authenticated mutation requests under protected/auth APIs must be same-origin when the browser sends `Origin` or cross-site fetch metadata.
 - Production API `5xx` responses are normalized so internal exception messages are not exposed to clients.
 - Astro-generated module scripts must still be served unmodified. If JavaScript rewriting or similar CDN optimizers are enabled, disable them for authenticated app routes and Astro asset routes.
@@ -333,19 +342,24 @@ Images:
 ```sh
 bun install
 bun run dev
+bun test
 bun run build
 bun run preview
 ```
 
-The production build runs Biome, Astro type checks, and Astro build.
+- `test`: `bun test` (unit tests under `tests/`).
+- `build`: Biome check, `bun test`, Astro check, then production Astro build.
+
+Current test baseline (generated from workspace state): **11 tests** across `tests/auth.test.ts`, `tests/markdown.test.ts`, and `tests/webp.test.ts`. `tests/` is excluded from `tsconfig.json`.
 
 ## 15. Security Notes
 
-- Do not deploy with the fallback `JWT_SECRET`.
+- Do not deploy with the fallback `JWT_SECRET`. Production rejects weak secrets on protected and auth API routes.
 - Keep S3 credentials server-only. The browser only receives upload capability status and maximum accepted size.
 - Uploaded images are stored as WebP only.
 - Public image URLs are assumed to be safe to expose because they are embedded into documents.
-- Markdown is rendered with raw HTML disabled and URL validation at parse time.
+- Markdown is rendered with raw HTML disabled and URL validation at parse time (`markdown-it`; no DOMPurify dependency).
+- Auth rate limiting is in-process only (`src/utils/rateLimit.ts`, prune + 500-bucket cap) and is not shared across multiple Node processes.
 - Redis is treated as a performance cache only, never as durable state.
 
 ## 16. Operational Checklist

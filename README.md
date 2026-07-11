@@ -34,9 +34,12 @@ bun run dev
 Production build:
 
 ```sh
+bun test
 bun run build
 bun run preview
 ```
+
+`bun run build` runs Biome check, unit tests (`bun test`), Astro check, then the production build. Current unit-test baseline is 11 tests under `tests/`.
 
 ## Required Environment
 
@@ -46,6 +49,7 @@ Required in production:
 
 Optional:
 
+- `ALLOW_REGISTRATION`: leave blank or `true` to allow sign-up; set `false` to reject `POST /api/auth/register`.
 - `DATABASE_URL`: blank uses `./database/sqlite.db`; supports PostgreSQL and MySQL/MariaDB URLs.
 - `REDIS_URL`: standard `redis://` or `rediss://` URL for document-read caching.
 - `DOCUMENT_CACHE_TTL_SECONDS`: cache TTL, default `120`.
@@ -129,7 +133,7 @@ When Redis fails, reaches a provider limit, or refuses a request, cache access i
 
 ## SPA and CDN Notes
 
-Protected app/API responses set `Cache-Control: private, no-store, no-transform` and `Vary: Cookie` to reduce CDN mutation and stale authenticated responses. Middleware also sets baseline security headers and same-origin mutation checks for cookie-authenticated API requests. Astro-generated module scripts must still be served unmodified; disable JavaScript rewriting for app routes if enabled at the CDN level.
+Protected app/API responses set `Cache-Control: private, no-store, no-transform` and `Vary: Cookie` to reduce CDN mutation and stale authenticated responses. Middleware also sets baseline security headers (including Content-Security-Policy), and same-origin mutation checks for cookie-authenticated API requests. Astro-generated module scripts must still be served unmodified; disable JavaScript rewriting for app routes if enabled at the CDN level.
 
 ## Documentation
 
