@@ -10,6 +10,13 @@ type RateLimitOptions = {
 };
 
 const buckets = new Map<string, RateLimitBucket>();
+const maxBuckets = 500;
+
+const pruneExpired = (now: number): void => {
+  for (const [bucketKey, bucket] of buckets) {
+    if (bucket.resetAt <= now) buckets.delete(bucketKey);
+  }
+};
 
 export const getClientIp = (request: Request): string => {
   const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
@@ -27,10 +34,12 @@ export const checkRateLimit = ({
   windowMs,
 }: RateLimitOptions): { allowed: boolean; retryAfterSeconds: number } => {
   const now = Date.now();
-  if (buckets.size > 1000) {
-    for (const [bucketKey, bucket] of buckets) {
-      if (bucket.resetAt <= now) buckets.delete(bucketKey);
-    }
+  pruneExpired(now);
+
+  while (buckets.size >= maxBuckets) {
+    const oldest = buckets.keys().next();
+    if (oldest.done) break;
+    buckets.delete(oldest.value);
   }
 
   const current = buckets.get(key);
