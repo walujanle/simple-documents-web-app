@@ -7,7 +7,7 @@ Personal and multi-user document workspace built with Astro SSR, React islands, 
 - Create, edit, organize, import, export, and share Markdown-backed documents.
 - Authenticate users with username/password, `bcryptjs`, HTTP-only JWT sessions, and Astro middleware guards.
 - Store data in SQLite by default, or PostgreSQL/MySQL when `DATABASE_URL` is set.
-- Render public documents with sanitized Markdown, SEO metadata, custom slugs, and public/unlisted/private visibility.
+- Render public documents with safe Markdown, SEO metadata, custom slugs, and public/unlisted/private visibility.
 - Add images either by URL or, when storage is configured, by previewing and uploading optimized WebP images to S3-compatible object storage.
 - Cache document reads through standard Redis when `REDIS_URL` is set. If Redis is empty or unavailable, reads fall back to the database.
 
@@ -20,6 +20,8 @@ Personal and multi-user document workspace built with Astro SSR, React islands, 
 - Auth: `bcryptjs` password hashing plus native Web Crypto JWT signing
 - Images: `@tiptap/extension-image`, `browser-image-compression`, `@aws-sdk/client-s3`
 - Cache: official `redis` client, no Upstash-specific API
+- SEO: runtime sitemap.xml, robots.txt, canonical URLs via `APP_BASE_URL`
+- Sanitization: markdown-it `validateLink` at parse level (Edge-safe, no DOM dependency)
 
 ## Quick Start
 
@@ -56,6 +58,7 @@ Optional:
 - `DEV_IMAGE_STORAGE_DIR`: development-only upload directory, default `database/dev-image-storage`.
 - `DEV_IMAGE_PUBLIC_BASE_URL`: optional development public base URL. Blank returns same-origin `/files/...` URLs.
 - `APP_NAME`, `APP_DESCRIPTION`, `APP_COVER_IMAGE`, `APP_LOGO`, `APP_ICON`, `VERSION_RETENTION_DAYS`: app metadata, public cover image path, and version history retention. The default cover image lives at `public/cover/cover-placeholder.png`.
+- `APP_BASE_URL`: public canonical base URL for sitemaps, robots.txt, canonical links, and OpenGraph/Twitter meta tags. Defaults to `http://localhost:4321`. Set to your production origin (e.g. `https://docs.example.com`) in production.
 
 Fallback values live in `src/utils/config.ts` and `src/utils/serverConfig.ts`, not in `.env.example`.
 
@@ -94,11 +97,21 @@ Public and editor rendering use responsive CSS with `max-width: 100%`, bounded v
 
 ## Markdown Behavior
 
-Public document rendering uses `markdown-it` with raw HTML disabled, linkify enabled, and a small local task-list extension. Rendered HTML is sanitized with `isomorphic-dompurify` before it is inserted into public pages.
+Public document rendering uses `markdown-it` with raw HTML disabled, linkify enabled, and a small local task-list extension. Link safety is enforced at parse time through `validateLink`, which allows only HTTP, HTTPS, `mailto:`, root-relative paths, and fragment links.
 
 Supported public rendering includes CommonMark-style headings, paragraphs, blockquotes, thematic breaks, fenced and indented code blocks, inline code, emphasis, strong emphasis, ordered/unordered/nested lists, links, images, reference links, GFM-style tables, strikethrough, autolinks, and task lists.
 
-Raw HTML in Markdown is intentionally not rendered. It is treated as text to keep public document rendering safe and predictable.
+Raw HTML in Markdown is intentionally not rendered. It is treated as text to keep public document rendering safe and predictable. External links are rendered with `target="_blank"` and `rel="noopener noreferrer"`. Images are rendered with `loading="lazy"` and `decoding="async"`.
+
+## SEO
+
+Runtime routes generate SEO assets without a build step:
+
+- `/sitemap.xml`: XML sitemap listing the homepage, public user profiles, and all public documents with last modification dates.
+- `/robots.txt`: allows public pages, disallows `/documents`, `/documents/`, and `/api/`, and advertises `/sitemap.xml`.
+- Canonical URLs, OpenGraph, and Twitter Card meta tags use `APP_BASE_URL` so links remain correct behind reverse proxies or CDNs.
+
+Set `APP_BASE_URL` to your production origin in production deployments.
 
 ## Cache Behavior
 
