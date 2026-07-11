@@ -1,6 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { isWeakJwtSecret, verifyJWT } from '@/utils/auth';
 import { config } from '@/utils/config';
+import { buildContentSecurityPolicy } from '@/utils/csp';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url, cookies, redirect, request } = context;
@@ -46,6 +47,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response.headers.set('X-Frame-Options', 'DENY');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    response.headers.set('Content-Security-Policy', buildContentSecurityPolicy());
     if (config.isProd) {
       response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     }
