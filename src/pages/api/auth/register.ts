@@ -3,13 +3,26 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { eq } from 'drizzle-orm';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 import { hashPassword, signJWT } from '@/utils/auth';
 import { config } from '@/utils/config';
 import { readJsonObject } from '@/utils/json';
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/utils/rateLimit';
+import {
+  getUsernameValidationError,
+  MIN_PASSWORD_LENGTH,
+  normalizeUsername,
+} from '@/utils/username';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
+    if (!config.allowRegistration) {
+      return new Response(JSON.stringify({ error: 'Registration is disabled.' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const rateLimit = checkRateLimit({
       key: `register:${getClientIp(request)}`,
       limit: 10,
@@ -22,19 +35,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const password = typeof body.password === 'string' ? body.password : '';
     const name = typeof body.name === 'string' ? body.name : '';
 
-    if (!username || !password || username.trim().length < 3 || password.length < 6) {
+    const usernameError = getUsernameValidationError(username);
+    if (usernameError) {
+      return new Response(JSON.stringify({ error: usernameError }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!password || password.length < MIN_PASSWORD_LENGTH) {
       return new Response(
         JSON.stringify({
-          error: 'Username must be at least 3 chars and password at least 6 chars',
+          error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } },
       );
     }
 
     const { db, users } = await getDB();
-    const cleanUsername = username.trim().toLowerCase();
+    const cleanUsername = normalizeUsername(username);
 
-    // Check if username already exists
     const existingUsers = await db
       .select()
       .from(users)
@@ -73,10 +93,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error);
   }
 };

@@ -3,9 +3,11 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { eq } from 'drizzle-orm';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 import { comparePassword, hashPassword } from '@/utils/auth';
 import { readJsonObject } from '@/utils/json';
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/utils/rateLimit';
+import { MIN_PASSWORD_LENGTH } from '@/utils/username';
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
@@ -27,10 +29,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const currentPassword = typeof body.currentPassword === 'string' ? body.currentPassword : '';
     const newPassword = typeof body.newPassword === 'string' ? body.newPassword : '';
 
-    if (!currentPassword || !newPassword || newPassword.length < 6) {
+    if (!currentPassword || !newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
       return new Response(
         JSON.stringify({
-          error: 'Current password and a new password of at least 6 characters are required',
+          error: `Current password and a new password of at least ${MIN_PASSWORD_LENGTH} characters are required`,
         }),
         {
           status: 400,
@@ -41,7 +43,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const { db, users } = await getDB();
 
-    // Fetch user record to retrieve current password hash
     const dbUsers = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
 
     if (dbUsers.length === 0) {
@@ -69,10 +70,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error);
   }
 };

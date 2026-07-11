@@ -146,8 +146,8 @@ export default function Settings() {
           setLoading(false);
           return;
         }
-        if (newPassword.length < 6) {
-          setError('New password must be at least 6 characters long');
+        if (newPassword.length < 10) {
+          setError('New password must be at least 10 characters long');
           setLoading(false);
           return;
         }
@@ -257,7 +257,7 @@ export default function Settings() {
                 setError('');
                 setSuccess('');
               }}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer outline-none focus:outline-none ${
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-text-main ${
                 activeTab === tab.id
                   ? 'bg-text-main text-bg-card font-black shadow-md'
                   : 'hover:bg-border-custom/30 text-text-muted hover:text-text-main'
