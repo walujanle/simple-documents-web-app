@@ -8,8 +8,9 @@
   },
   "scripts": {
     "test": "bun test",
+    "check:no-prefetch": "node scripts/check-no-prefetch.mjs",
     "dev": "NODE_ENV=development astro dev",
-    "build": "biome check && bun test && astro check && NODE_ENV=production astro build",
+    "build": "biome check && bun run check:no-prefetch && bun test && astro check && NODE_ENV=production astro build",
     "preview": "NODE_ENV=production astro preview",
     "astro": "astro"
   },

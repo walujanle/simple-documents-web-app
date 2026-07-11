@@ -135,6 +135,11 @@ When Redis fails, reaches a provider limit, or refuses a request, cache access i
 
 Protected app/API responses set `Cache-Control: private, no-store, no-transform` and `Vary: Cookie` to reduce CDN mutation and stale authenticated responses. Middleware also sets baseline security headers (including Content-Security-Policy), and same-origin mutation checks for cookie-authenticated API requests. Astro-generated module scripts must still be served unmodified; disable JavaScript rewriting for app routes if enabled at the CDN level.
 
+
+## Navigation / prefetch (locked)
+
+View transitions use Astro `ClientRouter`, but **automatic link prefetch is disabled** (`prefetch: false` in `astro.config.mjs`). Do not re-enable it — concurrent hover prefetch caused production **503** under load. See `AGENTS.md` and run `bun run check:no-prefetch` before changing navigation.
+
 ## Documentation
 
 Full architecture and operational documentation lives in:

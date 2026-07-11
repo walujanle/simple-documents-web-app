@@ -290,6 +290,17 @@ Invalidation occurs after:
 
 The database is always the source of truth. Cache failures must not block reads or writes.
 
+
+## Prefetch policy (locked)
+
+Automatic Astro link prefetch is **disabled** and must stay disabled.
+
+- Config: `prefetch: false` in `astro.config.mjs` (required).
+- Reason: `ClientRouter` otherwise prefetches full SSR pages on hover/viewport, which concurrent-loads the server and returned **HTTP 503** in production (docs Cloudflare + D1; same risk on Node SSR).
+- Agent/dev lock: `AGENTS.md` + `bun run check:no-prefetch` (also runs inside `bun run build`).
+- Do not add `data-astro-prefetch`, `prefetchAll: true`, or remove `prefetch: false`.
+- Click navigation via `<ClientRouter />` remains enabled.
+
 ## 12. SPA and CDN Behavior
 
 The workspace behaves as an Astro SSR app with React islands. To reduce CDN-caused SPA anomalies:
@@ -299,7 +310,7 @@ The workspace behaves as an Astro SSR app with React islands. To reduce CDN-caus
 - All responses get `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, and `Content-Security-Policy` from `src/utils/csp.ts`.
 - Cookie-authenticated mutation requests under protected/auth APIs must be same-origin when the browser sends `Origin` or cross-site fetch metadata.
 - Production API `5xx` responses are normalized so internal exception messages are not exposed to clients.
-- Automatic link prefetch from ClientRouter is disabled via `prefetch: false` in `astro.config.mjs` so hover-driven SSR storms do not overload the server under concurrent loads. Astro-generated module scripts must still be served unmodified. If JavaScript rewriting or similar CDN optimizers are enabled, disable them for authenticated app routes and Astro asset routes.
+- **Locked:** automatic link prefetch is disabled (`prefetch: false`; see Prefetch policy). This prevents hover-driven SSR storms that overload the server under concurrent loads. Astro-generated module scripts must still be served unmodified. If JavaScript rewriting or similar CDN optimizers are enabled, disable them for authenticated app routes and Astro asset routes.
 
 ## 13. API Surface
 
