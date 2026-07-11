@@ -439,7 +439,9 @@ async function initializeDB() {
 export async function getDB() {
   if (!initialized) {
     if (!initPromise) {
-      initPromise = initializeDB();
+      initPromise = initializeDB().finally(() => {
+        initPromise = null;
+      });
     }
     await initPromise;
   }
