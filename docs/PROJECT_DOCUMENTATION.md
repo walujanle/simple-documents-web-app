@@ -28,7 +28,6 @@ Core dependencies:
 - `better-sqlite3`, `pg`, `mysql2`
 - `bcryptjs`
 - `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-image`, `tiptap-markdown`
-- `isomorphic-dompurify`
 - `browser-image-compression`
 - `@aws-sdk/client-s3`
 - `redis`
@@ -346,7 +345,7 @@ The production build runs Biome, Astro type checks, and Astro build.
 - Keep S3 credentials server-only. The browser only receives upload capability status and maximum accepted size.
 - Uploaded images are stored as WebP only.
 - Public image URLs are assumed to be safe to expose because they are embedded into documents.
-- Markdown HTML is sanitized before public rendering.
+- Markdown is rendered with raw HTML disabled and URL validation at parse time.
 - Redis is treated as a performance cache only, never as durable state.
 
 ## 16. Operational Checklist
