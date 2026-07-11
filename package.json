@@ -7,8 +7,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "test": "bun test",
     "dev": "NODE_ENV=development astro dev",
-    "build": "biome check && astro check && NODE_ENV=production astro build",
+    "build": "biome check && bun test && astro check && NODE_ENV=production astro build",
     "preview": "NODE_ENV=production astro preview",
     "astro": "astro"
   },
