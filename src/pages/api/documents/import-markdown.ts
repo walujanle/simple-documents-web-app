@@ -2,6 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 import { serverConfig } from '@/utils/serverConfig';
 
 export const POST: APIRoute = async ({ request, locals }) => {
@@ -58,10 +59,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Internal Server Error');
   }
 };

@@ -3,6 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { eq } from 'drizzle-orm';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 
 export const GET: APIRoute = async ({ locals }) => {
   try {
@@ -45,10 +46,7 @@ export const GET: APIRoute = async ({ locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Internal Server Error');
   }
 };

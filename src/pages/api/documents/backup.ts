@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { and, eq, inArray } from 'drizzle-orm';
 import JSZip from 'jszip';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 import { invalidateDocumentsCache, invalidateUserCache } from '@/utils/documentCache';
 import {
   cleanupUnreferencedDocumentImages,
@@ -217,11 +218,8 @@ export const GET: APIRoute = async ({ locals }) => {
         'Content-Disposition': `attachment; filename="simple_documents_backup_${Date.now()}.zip"`,
       },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Internal Server Error');
   }
 };
 
@@ -517,10 +515,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Internal Server Error');
   }
 };

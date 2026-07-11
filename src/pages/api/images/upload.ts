@@ -3,6 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { eq } from 'drizzle-orm';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 import {
   createImageObjectKey,
   getImageUploadSettings,
@@ -98,10 +99,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         headers: { 'Content-Type': 'application/json' },
       },
     );
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Image upload failed.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Image upload failed.');
   }
 };

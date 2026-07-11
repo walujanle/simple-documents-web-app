@@ -3,6 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { and, eq, inArray } from 'drizzle-orm';
 import { getDB } from '@/db';
+import { apiErrorFromCaught } from '@/utils/apiError';
 import { invalidateDocumentsCache } from '@/utils/documentCache';
 import { readJsonObject } from '@/utils/json';
 
@@ -151,11 +152,8 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
         headers: { 'Content-Type': 'application/json' },
       },
     );
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Internal Server Error');
   }
 };
 
@@ -229,10 +227,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (error: unknown) {
+    return apiErrorFromCaught(error, 'Internal Server Error');
   }
 };
