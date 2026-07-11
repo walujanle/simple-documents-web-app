@@ -6,10 +6,15 @@ import Layout from '@/layouts/Layout.astro';
 import { config } from '@/utils/config';
 import { getCachedPublicDocument } from '@/utils/documentCache';
 import { parseMarkdown } from '@/utils/markdown';
+import { isReservedUsername, normalizeUsername } from '@/utils/username';
 
 const { username, id } = Astro.params;
 
 if (!username || !id) {
+  return new Response('Not found', { status: 404 });
+}
+
+if (isReservedUsername(normalizeUsername(username))) {
   return new Response('Not found', { status: 404 });
 }
 

@@ -1,4 +1,3 @@
-import DOMPurify from 'isomorphic-dompurify';
 import MarkdownIt from 'markdown-it';
 
 type MarkdownToken = {
@@ -16,6 +15,7 @@ type MarkdownStateCore = {
 };
 
 const isExternalUrl = (href: string): boolean => /^https?:\/\//i.test(href);
+const isSafeUrl = (url: string): boolean => /^(?:(?:https?|mailto):|\/(?!\/)|#)/i.test(url);
 
 const taskListPlugin = (md: MarkdownIt): void => {
   md.core.ruler.after('inline', 'task_lists', (state: MarkdownStateCore) => {
@@ -49,80 +49,37 @@ const markdownRenderer = new MarkdownIt({
   linkify: true,
   typographer: false,
   breaks: false,
-}).use(taskListPlugin);
-
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.nodeType !== 1) return;
-
-  const element = node as Element;
-  const tagName = element.tagName.toLowerCase();
-
-  if (tagName === 'a') {
-    const href = element.getAttribute('href');
-
-    if (href && isExternalUrl(href)) {
-      element.setAttribute('target', '_blank');
-      element.setAttribute('rel', 'noopener noreferrer');
-    }
-  }
-
-  if (tagName === 'img') {
-    element.setAttribute('loading', 'lazy');
-    element.setAttribute('decoding', 'async');
-  }
 });
+
+markdownRenderer.validateLink = isSafeUrl;
+markdownRenderer.use(taskListPlugin);
+
+const defaultLinkOpen =
+  markdownRenderer.renderer.rules.link_open ??
+  ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+const defaultImage =
+  markdownRenderer.renderer.rules.image ??
+  ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+
+markdownRenderer.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+  const href = tokens[idx].attrGet('href');
+  if (href && isExternalUrl(href)) {
+    tokens[idx].attrSet('target', '_blank');
+    tokens[idx].attrSet('rel', 'noopener noreferrer');
+  }
+  return defaultLinkOpen(tokens, idx, options, env, self);
+};
+
+markdownRenderer.renderer.rules.image = (tokens, idx, options, env, self) => {
+  const src = tokens[idx].attrGet('src');
+  if (!src || !isSafeUrl(src)) return '';
+  tokens[idx].attrSet('loading', 'lazy');
+  tokens[idx].attrSet('decoding', 'async');
+  return defaultImage(tokens, idx, options, env, self);
+};
 
 export function parseMarkdown(markdown: string): string {
   if (!markdown) return '';
 
-  const html = markdownRenderer.render(markdown);
-
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      'a',
-      'blockquote',
-      'br',
-      'code',
-      'del',
-      'em',
-      'h1',
-      'h2',
-      'h3',
-      'h4',
-      'h5',
-      'h6',
-      'hr',
-      'img',
-      'input',
-      'li',
-      'ol',
-      'p',
-      'pre',
-      's',
-      'strong',
-      'table',
-      'tbody',
-      'td',
-      'th',
-      'thead',
-      'tr',
-      'ul',
-    ],
-    ALLOWED_ATTR: [
-      'alt',
-      'checked',
-      'class',
-      'decoding',
-      'disabled',
-      'href',
-      'loading',
-      'rel',
-      'src',
-      'target',
-      'title',
-      'type',
-    ],
-    ADD_ATTR: ['checked', 'decoding', 'disabled', 'loading', 'rel', 'target'],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|\/(?!\/)|#)/i,
-  });
+  return markdownRenderer.render(markdown);
 }

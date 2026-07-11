@@ -28,7 +28,7 @@
     "better-sqlite3": "^12.10.1",
     "browser-image-compression": "^2.0.2",
     "drizzle-orm": "^0.45.2",
-    "isomorphic-dompurify": "^3.17.0",
+
     "jszip": "^3.10.1",
     "markdown-it": "^14.2.0",
     "mysql2": "^3.22.5",
@@ -44,7 +44,7 @@
     "@biomejs/biome": "^2.5.0",
     "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/dompurify": "^3.2.0",
+
     "@types/jszip": "^3.4.1",
     "@types/markdown-it": "^14.1.2",
     "@types/pg": "^8.20.0",
@@ -52,7 +52,6 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "dompurify": "3.4.11",
     "esbuild": "0.28.1",
     "undici": "7.28.0",
     "yaml": "2.9.0"

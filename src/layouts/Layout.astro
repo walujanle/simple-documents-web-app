@@ -2,6 +2,7 @@
 import '@/styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import { config } from '@/utils/config';
+import { absoluteAppUrl } from '@/utils/url';
 
 interface Props {
   title?: string;
@@ -21,10 +22,8 @@ const {
   jsonLd,
 } = Astro.props;
 
-const canonicalUrl = new URL(Astro.url.pathname, Astro.url.origin).toString();
-const absoluteCoverUrl = config.coverImage
-  ? new URL(config.coverImage, Astro.url.origin).toString()
-  : '';
+const canonicalUrl = absoluteAppUrl(Astro.url.pathname);
+const absoluteCoverUrl = config.coverImage ? absoluteAppUrl(config.coverImage) : '';
 ---
 
 <!doctype html>

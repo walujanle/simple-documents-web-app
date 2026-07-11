@@ -71,6 +71,7 @@ Optional S3-compatible image uploads:
 
 Optional metadata:
 
+- `APP_BASE_URL`, default `http://localhost:4321`. Public canonical origin for sitemaps, robots.txt, canonical links, and OpenGraph URLs.
 - `APP_NAME`
 - `APP_DESCRIPTION`
 - `APP_COVER_IMAGE`, default `/cover/cover-placeholder.png`
@@ -212,7 +213,7 @@ Responsive rendering:
 
 ## 9. Markdown Rendering and Sanitization
 
-`src/utils/markdown.ts` converts Markdown to HTML with `markdown-it` and sanitizes the rendered output with `isomorphic-dompurify`.
+`src/utils/markdown.ts` converts Markdown to HTML with `markdown-it`. Raw HTML is disabled at the parser level through `html: false`. Link safety is enforced at parse time through `validateLink` with `isSafeUrl`, which allows only HTTP, HTTPS, `mailto:`, root-relative paths, and fragment links.
 
 Supported image syntax:
 
@@ -221,14 +222,37 @@ Supported image syntax:
 
 The public renderer enables standard document Markdown behavior through `markdown-it`: headings `h1`-`h6`, paragraphs, blockquotes, thematic breaks, fenced and indented code blocks, inline code, emphasis, strong emphasis, ordered/unordered/nested lists, links, images, reference links, GFM-style tables, strikethrough, autolinks, and a local task-list extension.
 
-Raw HTML is disabled in the Markdown parser. It is rendered as text, then the generated HTML is passed through the sanitizer. Allowed URL protocols are HTTP, HTTPS, `mailto:`, root-relative paths, and fragment links. Base64 images and arbitrary protocols are not allowed.
+Raw HTML is disabled in the Markdown parser and rendered as text. Allowed URL protocols are HTTP, HTTPS, `mailto:`, root-relative paths, and fragment links. Base64 image insertion is disabled in TipTap and rejected by Markdown link/image URL validation.
 
-Public document routes render sanitized content only:
+External links are rendered with `target="_blank"` and `rel="noopener noreferrer"`. Images are rendered with `loading="lazy"` and `decoding="async"`.
+
+Public document routes:
 
 - `/[username]/documents/[id-or-customSlug]`
 - `/shared/doc/[id]`, which redirects to the canonical public URL.
 
-## 10. Document Read Cache
+Reserved application routes are blocked from username registration and public profile lookup so static app paths cannot be treated as user profiles.
+
+## 10. SEO and Sitemap
+
+Public pages are optimized for search engines:
+
+- `src/pages/sitemap.xml.ts`: Runtime XML sitemap listing the homepage, public user profiles, and all public documents with their last modification dates.
+- `src/pages/robots.txt.ts`: Runtime robots.txt allowing public pages, disallowing `/documents`, `/documents/`, and `/api/`, and advertising `/sitemap.xml`.
+- Canonical URLs are generated through `absoluteAppUrl()` in `src/utils/url.ts`, which uses `config.appBaseUrl` from `APP_BASE_URL` environment variable.
+- Layout.astro renders `<link rel="canonical">`, OpenGraph, and Twitter Card meta tags using absolute URLs.
+- Public profile pages (`/[username].astro`) and public document pages (`/[username]/documents/[id].astro`) set cache headers for CDN caching.
+- Reserved usernames (defined in `src/utils/username.ts`) are blocked from registration and return 404 on profile lookup.
+
+Public routes:
+
+- `/[username]`: public profile.
+- `/[username]/documents/[id-or-customSlug]`: public document reader.
+- `/shared/doc/[id]`: redirect to canonical public document URL.
+- `/sitemap.xml`: runtime XML sitemap.
+- `/robots.txt`: allows public pages, disallows workspace/API crawling.
+
+## 11. Document Read Cache
 
 Cache helpers:
 
@@ -257,7 +281,7 @@ Invalidation occurs after:
 
 The database is always the source of truth. Cache failures must not block reads or writes.
 
-## 11. SPA and CDN Behavior
+## 12. SPA and CDN Behavior
 
 The workspace behaves as an Astro SSR app with React islands. To reduce CDN-caused SPA anomalies:
 
@@ -269,7 +293,7 @@ The workspace behaves as an Astro SSR app with React islands. To reduce CDN-caus
 - Production API `5xx` responses are normalized so internal exception messages are not exposed to clients.
 - Astro-generated module scripts must still be served unmodified. If JavaScript rewriting or similar CDN optimizers are enabled, disable them for authenticated app routes and Astro asset routes.
 
-## 12. API Surface
+## 13. API Surface
 
 Authentication:
 
@@ -305,7 +329,7 @@ Images:
 - `GET /api/images/config`
 - `POST /api/images/upload`
 
-## 13. Commands
+## 14. Commands
 
 ```sh
 bun install
@@ -316,7 +340,7 @@ bun run preview
 
 The production build runs Biome, Astro type checks, and Astro build.
 
-## 14. Security Notes
+## 15. Security Notes
 
 - Do not deploy with the fallback `JWT_SECRET`.
 - Keep S3 credentials server-only. The browser only receives upload capability status and maximum accepted size.
@@ -325,7 +349,7 @@ The production build runs Biome, Astro type checks, and Astro build.
 - Markdown HTML is sanitized before public rendering.
 - Redis is treated as a performance cache only, never as durable state.
 
-## 15. Operational Checklist
+## 16. Operational Checklist
 
 Before production:
 
@@ -337,7 +361,7 @@ Before production:
 - Run `bun run build`.
 - Test register, login, document CRUD, public document read, image URL insert, and image upload if storage is configured.
 
-## 16. License
+## 17. License
 
 The project is released under the MIT License.
 
